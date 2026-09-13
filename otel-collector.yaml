@@ -1,0 +1,23 @@
+receivers:
+  otlp:
+    protocols:
+      http:
+        endpoint: 0.0.0.0:4318
+exporters:
+  debug:
+    verbosity: detailed
+  otlphttp/aspire:
+    endpoint: http://aspire:18890
+    # Aspire 13.2's HTTP receiver expects an uncompressed protobuf body.
+    compression: none
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      exporters: [debug, otlphttp/aspire]
+    metrics:
+      receivers: [otlp]
+      exporters: [debug, otlphttp/aspire]
+    logs:
+      receivers: [otlp]
+      exporters: [debug, otlphttp/aspire]

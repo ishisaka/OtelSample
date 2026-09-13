@@ -1,0 +1,66 @@
+[tools]
+go = "1.27.0"
+"go:go.opentelemetry.io/otelc/tool/cmd/otelc" = "1.1.0"
+
+[env]
+GOTOOLCHAIN = "local"
+
+[tasks.check]
+description = "Check the uninstrumented Go source"
+run = ["go test ./...", "go vet ./...", "go vet scripts/dev.go"]
+
+[tasks.build]
+description = "Build with otelc in an isolated temporary module"
+run = "go run scripts/dev.go build"
+
+[tasks.verify]
+description = "Verify HTTP, traces, correlated logs and runtime metrics without Docker"
+depends = ["check", "build"]
+run = "go run scripts/dev.go verify"
+
+[tasks.console]
+description = "Run the instrumented sample with console exporters"
+depends = ["build"]
+run = "go run scripts/dev.go console"
+
+[tasks.otlp]
+description = "Run the instrumented sample with the local OTLP Collector"
+depends = ["build"]
+run = "go run scripts/dev.go otlp"
+
+[tasks.request]
+description = "Send a request to the running sample on port 8080"
+run = "go run scripts/dev.go request"
+
+[tasks.plain]
+description = "Run without instrumentation"
+run = "go run main.go"
+
+[tasks."collector:up"]
+description = "Start the Collector and Aspire Dashboard (requires Docker Compose)"
+run = "docker compose up -d"
+
+[tasks."collector:logs"]
+description = "Follow received telemetry"
+run = "docker compose logs -f collector"
+
+[tasks."collector:down"]
+description = "Stop and remove the sample Collector and Aspire Dashboard"
+run = "docker compose down"
+
+[tasks.aspire]
+description = "Start Aspire Dashboard and the instrumented Go sample"
+depends = ["build", "aspire:up"]
+run = "go run scripts/dev.go otlp"
+
+[tasks."aspire:up"]
+description = "Start Aspire Dashboard at http://localhost:18888 and the Collector"
+run = "docker compose up -d"
+
+[tasks."aspire:logs"]
+description = "Follow Aspire Dashboard and Collector logs"
+run = "docker compose logs -f aspire collector"
+
+[tasks."aspire:down"]
+description = "Stop and remove Aspire Dashboard and the Collector"
+run = "docker compose down"

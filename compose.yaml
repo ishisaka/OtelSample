@@ -1,0 +1,17 @@
+name: otelsample
+services:
+  aspire:
+    image: mcr.microsoft.com/dotnet/aspire-dashboard:13.2.0
+    environment:
+      # Local development only; only the UI is published on loopback.
+      ASPIRE_DASHBOARD_UNSECURED_ALLOW_ANONYMOUS: "true"
+    ports:
+      - "127.0.0.1:18888:18888"
+  collector:
+    image: otel/opentelemetry-collector:0.135.0
+    ports:
+      - "127.0.0.1:4318:4318"
+    volumes:
+      - ./otel-collector.yaml:/etc/otelcol/config.yaml:ro
+    depends_on:
+      - aspire
